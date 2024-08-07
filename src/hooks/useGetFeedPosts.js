@@ -1,0 +1,59 @@
+
+import { useEffect, useState } from "react";
+import usePostStore from "../store/postStore";
+import useAuthStore from "../store/authStore";
+import useShowToast from "./useShowToast";
+import useUserProfileStore from "../store/userProfileStore";
+import { collection, getDocs, query, where } from "firebase/firestore";
+import { firestore } from "../firebase/firebase";
+
+const useGetFeedPosts = () => {
+	const [isLoading, setIsLoading] = useState(true);
+	const { posts, setPosts } = usePostStore();
+	const authUser = useAuthStore((state) => state.user);
+	const showToast = useShowToast();
+	const { setUserProfile } = useUserProfileStore();
+
+	useEffect(() => {
+		const getFeedPosts = async () => {
+			setIsLoading(true);
+			
+			// Return early if the user is not following anyone
+			if (!authUser || (authUser.following.length === 0 && !authUser.uid)) {
+				setIsLoading(false);
+				setPosts([]);
+				return;
+			}
+			
+			// Create a list of users to query posts for
+			const followingUids = [...authUser.following, authUser.uid]; // Include the authenticated user
+			const q = query(
+				collection(firestore, "posts"),
+				where("createdBy", "in", followingUids)
+			);
+
+			try {
+				const querySnapshot = await getDocs(q);
+				const feedPosts = [];
+
+				querySnapshot.forEach((doc) => {
+					feedPosts.push({ id: doc.id, ...doc.data() });
+				});
+
+				// Sort posts by creation date, with the most recent first
+				feedPosts.sort((a, b) => b.createdAt - a.createdAt);
+				setPosts(feedPosts);
+			} catch (error) {
+				showToast("Error", error.message, "error");
+			} finally {
+				setIsLoading(false);
+			}
+		};
+
+		if (authUser) getFeedPosts();
+	}, [authUser, showToast, setPosts, setUserProfile]);
+
+	return { isLoading, posts };
+};
+
+export default useGetFeedPosts;
