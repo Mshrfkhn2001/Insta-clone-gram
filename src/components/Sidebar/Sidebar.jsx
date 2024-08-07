@@ -41,6 +41,7 @@ function Sidebar() {
                         p={2}
                         w={{base:10,md:"full"}}
                         mt={"auto"}
+                        mb={"auto"}
                         justifyContent={{base:"center",md:"flex-start"}}
                         >
                             <BiLogOut size={25}/>
