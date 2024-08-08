@@ -117,6 +117,12 @@ function useCreatePost() {
 	const handleCreatePost = async (selectedFile, caption) => {
 		if (isLoading) return;
 		if (!selectedFile) throw new Error("Please select an image");
+
+		if (!authUser || !authUser.uid) {
+			showToast("Error", "User not authenticated", "error");
+			return;
+		}
+
 		setIsLoading(true);
 		const newPost = {
 			caption: caption,
@@ -139,9 +145,9 @@ function useCreatePost() {
 
 			newPost.imageURL = downloadURL;
 
-			if (userProfile.uid === authUser.uid) createPost({ ...newPost, id: postDocRef.id });
+			if (userProfile?.uid === authUser.uid) createPost({ ...newPost, id: postDocRef.id });
 
-			if (pathname !== "/" && userProfile.uid === authUser.uid) addPost({ ...newPost, id: postDocRef.id });
+			if (pathname !== "/" && userProfile?.uid === authUser.uid) addPost({ ...newPost, id: postDocRef.id });
 
 			showToast("Success", "Post created successfully", "success");
 		} catch (error) {
@@ -153,4 +159,3 @@ function useCreatePost() {
 
 	return { isLoading, handleCreatePost };
 }
-

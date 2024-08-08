@@ -40,7 +40,6 @@ const useGetFeedPosts = () => {
 					feedPosts.push({ id: doc.id, ...doc.data() });
 				});
 
-				// Sort posts by creation date, with the most recent first
 				feedPosts.sort((a, b) => b.createdAt - a.createdAt);
 				setPosts(feedPosts);
 			} catch (error) {
